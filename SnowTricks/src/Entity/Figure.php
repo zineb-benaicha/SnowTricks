@@ -125,7 +125,7 @@ class Figure
     {
         if (!$this->mediaList->contains($mediaList)) {
             $this->mediaList[] = $mediaList;
-            $mediaList->setFigureId($this);
+            $mediaList->setFigure($this);
         }
 
         return $this;
@@ -135,8 +135,8 @@ class Figure
     {
         if ($this->mediaList->removeElement($mediaList)) {
             // set the owning side to null (unless already changed)
-            if ($mediaList->getFigureId() === $this) {
-                $mediaList->setFigureId(null);
+            if ($mediaList->getFigure() === $this) {
+                $mediaList->setFigure(null);
             }
         }
 

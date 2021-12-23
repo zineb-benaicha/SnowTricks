@@ -38,7 +38,7 @@ class Media
      * @ORM\ManyToOne(targetEntity=Figure::class, inversedBy="mediaList")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $figureId;
+    private $figure;
 
     public function getType(): ?string
     {
@@ -79,14 +79,14 @@ class Media
         return $this;
     }
 
-    public function getFigureId(): ?Figure
+    public function getFigure(): ?Figure
     {
         return $this->figureId;
     }
 
-    public function setFigureId(?Figure $figureId): self
+    public function setFigure(?Figure $figure): self
     {
-        $this->figureId = $figureId;
+        $this->figureId = $figure;
 
         return $this;
     }
