@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -36,6 +38,16 @@ class User
      * @ORM\Column(type="string", length=255)
      */
     private $avatar;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Message::class, mappedBy="user", orphanRemoval=true)
+     */
+    private $messagesList;
+
+    public function __construct()
+    {
+        $this->messagesList = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -86,6 +98,36 @@ class User
     public function setAvatar(string $avatar): self
     {
         $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Message[]
+     */
+    public function getMessagesList(): Collection
+    {
+        return $this->messagesList;
+    }
+
+    public function addMessagesList(Message $messagesList): self
+    {
+        if (!$this->messagesList->contains($messagesList)) {
+            $this->messagesList[] = $messagesList;
+            $messagesList->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessagesList(Message $messagesList): self
+    {
+        if ($this->messagesList->removeElement($messagesList)) {
+            // set the owning side to null (unless already changed)
+            if ($messagesList->getUser() === $this) {
+                $messagesList->setUser(null);
+            }
+        }
 
         return $this;
     }

@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Media
 {
+    const IMAGE_TYPE = 'image';
+    const VIDEO_TYPE = 'video';
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
@@ -33,14 +35,10 @@ class Media
     private $isPrincipal;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\ManyToOne(targetEntity=Figure::class, inversedBy="mediaList")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $figureId;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getType(): ?string
     {
@@ -49,6 +47,9 @@ class Media
 
     public function setType(string $type): self
     {
+        if (!in_array($type, array(self::IMAGE_TYPE, self::VIDEO_TYPE))) {
+            throw new \InvalidArgumentException("Type de média invalide");
+        }
         $this->type = $type;
 
         return $this;
@@ -78,12 +79,12 @@ class Media
         return $this;
     }
 
-    public function getFigureId(): ?int
+    public function getFigureId(): ?Figure
     {
         return $this->figureId;
     }
 
-    public function setFigureId(int $figureId): self
+    public function setFigureId(?Figure $figureId): self
     {
         $this->figureId = $figureId;
 

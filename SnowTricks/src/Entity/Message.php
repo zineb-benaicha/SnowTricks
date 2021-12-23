@@ -28,14 +28,16 @@ class Message
     private $creationDate;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="messagesList")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private $userId;
+    private $user;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\ManyToOne(targetEntity=Figure::class, inversedBy="messagesList")
+     * @ORM\JoinColumn(nullable=false)
      */
-    private $figureId;
+    private $Figure;
 
     public function getId(): ?int
     {
@@ -66,27 +68,28 @@ class Message
         return $this;
     }
 
-    public function getUserId(): ?int
+    public function getUser(): ?User
     {
-        return $this->userId;
+        return $this->user;
     }
 
-    public function setUserId(int $userId): self
+    public function setUser(?User $user): self
     {
-        $this->userId = $userId;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getFigureId(): ?int
+    public function getFigure(): ?Figure
     {
-        return $this->figureId;
+        return $this->Figure;
     }
 
-    public function setFigureId(int $figureId): self
+    public function setFigure(?Figure $Figure): self
     {
-        $this->figureId = $figureId;
+        $this->Figure = $Figure;
 
         return $this;
     }
+
 }

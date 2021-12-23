@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\FigureRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -26,12 +28,6 @@ class Figure
      * @ORM\Column(type="string", length=350)
      */
     private $description;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $groupe;
-
     /**
      * @ORM\Column(type="datetime")
      */
@@ -41,6 +37,28 @@ class Figure
      * @ORM\Column(type="datetime")
      */
     private $lastUpdateDate;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Media::class, mappedBy="figureId", orphanRemoval=true)
+     */
+    private $mediaList;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Message::class, mappedBy="Figure", orphanRemoval=true)
+     */
+    private $messagesList;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Group::class, inversedBy="figuresList")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $groupe;
+
+    public function __construct()
+    {
+        $this->mediaList = new ArrayCollection();
+        $this->messagesList = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -71,18 +89,6 @@ class Figure
         return $this;
     }
 
-    public function getGroupe(): ?string
-    {
-        return $this->groupe;
-    }
-
-    public function setGroupe(string $groupe): self
-    {
-        $this->groupe = $groupe;
-
-        return $this;
-    }
-
     public function getCreationDate(): ?\DateTimeInterface
     {
         return $this->creationDate;
@@ -103,6 +109,78 @@ class Figure
     public function setLastUpdateDate(\DateTimeInterface $lastUpdateDate): self
     {
         $this->lastUpdateDate = $lastUpdateDate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Media[]
+     */
+    public function getMediaList(): Collection
+    {
+        return $this->mediaList;
+    }
+
+    public function addMediaList(Media $mediaList): self
+    {
+        if (!$this->mediaList->contains($mediaList)) {
+            $this->mediaList[] = $mediaList;
+            $mediaList->setFigureId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMediaList(Media $mediaList): self
+    {
+        if ($this->mediaList->removeElement($mediaList)) {
+            // set the owning side to null (unless already changed)
+            if ($mediaList->getFigureId() === $this) {
+                $mediaList->setFigureId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Message[]
+     */
+    public function getMessagesList(): Collection
+    {
+        return $this->messagesList;
+    }
+
+    public function addMessagesList(Message $messagesList): self
+    {
+        if (!$this->messagesList->contains($messagesList)) {
+            $this->messagesList[] = $messagesList;
+            $messagesList->setFigure($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessagesList(Message $messagesList): self
+    {
+        if ($this->messagesList->removeElement($messagesList)) {
+            // set the owning side to null (unless already changed)
+            if ($messagesList->getFigure() === $this) {
+                $messagesList->setFigure(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getGroupe(): ?Group
+    {
+        return $this->groupe;
+    }
+
+    public function setGroupe(?Group $groupe): self
+    {
+        $this->groupe = $groupe;
 
         return $this;
     }
