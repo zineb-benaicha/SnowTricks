@@ -6,10 +6,16 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker;
 use App\Entity\User;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFixtures extends Fixture
 {
-    
+    private UserPasswordHasherInterface $hasher;
+
+        public function __construct(UserPasswordHasherInterface $hasher)
+        {
+            $this->hasher = $hasher;
+        }
     
     public function load(ObjectManager $manager): void
     {
@@ -21,7 +27,7 @@ class UserFixtures extends Fixture
 
             $user->setUsername($faker->userName)
                  ->setEmail($faker->email)
-                 ->setPassword(password_hash('123456', PASSWORD_DEFAULT))
+                 ->setPassword($this->hasher->hashPassword($user, '123456'))
                  ->setAvatar('http://via.placeholder.com/350x150');
 
             $manager->persist($user);
