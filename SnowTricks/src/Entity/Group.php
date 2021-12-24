@@ -30,8 +30,9 @@ class Group
      */
     private $figuresList;
 
-    public function __construct()
+    public function __construct($name)
     {
+        $this->name = $name;
         $this->figuresList = new ArrayCollection();
     }
 

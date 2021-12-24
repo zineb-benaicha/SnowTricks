@@ -49,7 +49,7 @@ class Figure
     private $messagesList;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Group::class, inversedBy="figuresList")
+     * @ORM\ManyToOne(targetEntity=Group::class, inversedBy="figuresList", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $groupe;
