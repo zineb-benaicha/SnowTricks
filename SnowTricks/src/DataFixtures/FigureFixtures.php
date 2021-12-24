@@ -6,14 +6,12 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Group;
 use App\Entity\Figure;
-use Faker;
+
 
 class FigureFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
-    {
-       /* $faker = Faker\Factory::create('fr_FR');*/
-        
+    {     
 
         $figures = [
             1 => [
@@ -46,6 +44,9 @@ class FigureFixtures extends Fixture
                    ->setGroupe($value['groupe']);
             
             $manager->persist($figure);
+
+            //enregistrer la figure dans une référence
+            $this->addReference('figure_' . $key, $figure);
         }
 
         $manager->flush();
