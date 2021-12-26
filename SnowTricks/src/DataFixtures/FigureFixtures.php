@@ -6,10 +6,18 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Entity\Group;
 use App\Entity\Figure;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
 
-class FigureFixtures extends Fixture
+
+class FigureFixtures extends Fixture implements DependentFixtureInterface
 {
+    public function getDependencies()
+    {
+        return [
+            GroupFixtures::class
+        ];
+    }
     public function load(ObjectManager $manager): void
     {     
 

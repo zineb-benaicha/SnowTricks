@@ -81,12 +81,12 @@ class Media
 
     public function getFigure(): ?Figure
     {
-        return $this->figureId;
+        return $this->figure;
     }
 
     public function setFigure(?Figure $figure): self
     {
-        $this->figureId = $figure;
+        $this->figure = $figure;
 
         return $this;
     }
