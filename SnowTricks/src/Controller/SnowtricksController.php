@@ -58,10 +58,13 @@ class SnowtricksController extends AbstractController
      */
     public function deleteFigure(Figure $figure, ManagerRegistry $doctrine): RedirectResponse
     {
+        /*$em = $this->getDoctrine()->getManager();
+        $em->remove($figure);
+        $em->flush();*/
         $manager = $doctrine->getManager();
         $manager->remove($figure);
         $manager->flush();
-        return $this->redirectToRoute("/");
+        return $this->redirectToRoute("home");
 
 
     }

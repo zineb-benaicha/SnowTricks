@@ -39,7 +39,7 @@ class Figure
     private $lastUpdateDate;
 
     /**
-     * @ORM\OneToMany(targetEntity=Media::class, mappedBy="figureId", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity=Media::class, mappedBy="figure", orphanRemoval=true)
      */
     private $mediaList;
 
