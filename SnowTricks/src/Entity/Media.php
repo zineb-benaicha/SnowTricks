@@ -39,6 +39,12 @@ class Media
      * @ORM\JoinColumn(nullable=false)
      */
     private $figure;
+    
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
 
     public function getType(): ?string
     {
