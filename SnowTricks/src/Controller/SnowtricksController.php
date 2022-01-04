@@ -3,13 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Figure;
+use App\Entity\Group;
 use App\Repository\FigureRepository;
-use Doctrine\ORM\EntityManager;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 
 
 class SnowtricksController extends AbstractController
@@ -43,6 +48,39 @@ class SnowtricksController extends AbstractController
     }
 
     /**
+     * @Route("figure/new", name="figure_create")
+     */
+    public function createFigure(Request $request)
+    {
+        $figure = new Figure();
+        $form = $this->createFormBuilder($figure)
+                     ->add('name')
+                     ->add('description')
+                     ->add('groupe', EntityType::class, [
+                            'class' => Group::class,
+                            'choice_label' => 'name',
+                     ])
+                     ->add('image', FileType::class, [
+                        'mapped' => false,
+                        'required' => false,
+                        'constraints' => [
+                            new File([
+                                'maxSize' => '1024k',
+                                'mimeTypes' => [
+                                    'image'
+                                ],
+                                'mimeTypesMessage' => 'This file is not a valid image',
+                            ])
+                        ],
+                     ])
+                     ->getForm();
+
+        return $this->render('snowtricks/create_figure.html.twig', [
+            'formFigure' => $form->createView()
+        ]);
+    }
+
+    /**
      * @Route("/figure/{id}", name="figure_show")
      */
     public function showFigure(Figure $figure)
@@ -58,14 +96,11 @@ class SnowtricksController extends AbstractController
      */
     public function deleteFigure(Figure $figure, ManagerRegistry $doctrine): RedirectResponse
     {
-        /*$em = $this->getDoctrine()->getManager();
-        $em->remove($figure);
-        $em->flush();*/
         $manager = $doctrine->getManager();
         $manager->remove($figure);
         $manager->flush();
         return $this->redirectToRoute("home");
-
-
     }
+
+    
 }

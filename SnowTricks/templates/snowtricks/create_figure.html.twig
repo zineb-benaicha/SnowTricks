@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+{% form_theme formFigure 'bootstrap_5_horizontal_layout.html.twig' %}
+{% block body %}
+<h1>Créer une nouvelle figure</h1>
+{{ form_start(formFigure) }}
+{{ form_widget(formFigure) }}
+{{ form_end(formFigure) }}
+{% endblock %}
