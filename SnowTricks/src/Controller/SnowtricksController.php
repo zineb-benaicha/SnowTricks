@@ -50,30 +50,51 @@ class SnowtricksController extends AbstractController
     /**
      * @Route("figure/new", name="figure_create")
      */
-    public function createFigure(Request $request)
+    public function createFigure(Request $request, ManagerRegistry $doctrine)
     {
         $figure = new Figure();
+        $manager = $doctrine->getManager();
+
         $form = $this->createFormBuilder($figure)
                      ->add('name')
                      ->add('description')
                      ->add('groupe', EntityType::class, [
                             'class' => Group::class,
                             'choice_label' => 'name',
+                     
                      ])
-                     ->add('image', FileType::class, [
-                        'mapped' => false,
-                        'required' => false,
-                        'constraints' => [
-                            new File([
-                                'maxSize' => '1024k',
-                                'mimeTypes' => [
-                                    'image'
-                                ],
-                                'mimeTypesMessage' => 'This file is not a valid image',
-                            ])
-                        ],
+                     ->add('images', FileType::class, [
+                            'multiple' => true,
+                            'mapped' => false,
+                            'required' => false
                      ])
+                     
                      ->getForm();
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            //traiter les images reçus via le formulaire
+            $images = $form->get('images')->getData();
+            foreach($images as $image) {
+                //générer un nom de fichier aléatoire pour chauqe image
+                $file = md5(uniqid() . '.' . $image->guessExtension());
+
+                //copier le fichier dans le dossier uploads
+                $image->move(
+                    $this->getParameter('images_directory'),
+                    $file
+                );
+            }
+
+            $figure->setCreationDate(new \DateTime());
+            $figure->setLastUpdateDate(new \DateTime());
+            
+            
+            $manager->persist($figure);
+            $manager->flush();
+            return $this->redirectToRoute("home");
+        }
 
         return $this->render('snowtricks/create_figure.html.twig', [
             'formFigure' => $form->createView()
