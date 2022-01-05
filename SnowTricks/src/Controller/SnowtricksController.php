@@ -16,32 +16,45 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 
 
 class SnowtricksController extends AbstractController
 {
-    public function verifyingEmbedBalise(String $embed)
+    public function extractVideoUrlFromEmbedBalise(String $embed = null)
     {
-        $balisesList = explode(",", $embed);
+        if($embed === null) {
+            return false;
+        }
+        else
+        {
+            $balisesList = explode(",", $embed);
 
-        if(!empty($balisesList)){
+            if(!empty($balisesList)){
 
-            foreach($balisesList as $balise) {
-                //convertir la chaine en un tableau
-                $balise_array = str_split($balise);
-                //cherche la position du parametre src
-                $position_src_debut = strpos($balise, 'src="');
-                //chercher la fin du parametre src
-                $i = $position_src_debut;
-                while($balise_array[$i] !== '"'){
-                    $i++;
+                foreach($balisesList as $balise) {
+                    //supprimer l'element s'il sagit d'une case vide
+                    if($balise === ''){
+                        unset($balisesList[array_search($balise, $balisesList)]);
+                    }
+                    else
+                    {
+                        //convertir la chaine en un tableau
+                        $balise_array = str_split($balise);
+                        //cherche la position du parametre src
+                        $position_src_debut = strpos($balise, 'src="') + 5;
+                        //chercher la fin du parametre src
+                        $i = $position_src_debut;
+                        while($balise_array[$i] !== '"'){
+                            $i++;
+                        }
+                        $position_src_fin = $i;
+                        $lenght = $position_src_fin - $position_src_debut;
+                        $srcBalisesList[] = substr($balise, $position_src_debut, $lenght);
+                        }
                 }
-                $position_src_fin = $i;
+                return $srcBalisesList;
+                
             }
-            
         }
     }
     /*private ManagerRegistry $doctrine;
@@ -105,7 +118,8 @@ class SnowtricksController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()) {
-            //traiter les images reçus via le formulaire
+            
+        // 1- traiter les images reçus via le formulaire
             $images = $form->get('images')->getData();
 
             foreach($images as $key => $image) {
@@ -129,15 +143,35 @@ class SnowtricksController extends AbstractController
                 else {
                     $img->setIsPrincipal(false);
                 }
+                //lier l'image à la figure
                 $figure->addMediaList($img);
             }
 
-            $figure->setCreationDate(new \DateTime());
-            $figure->setLastUpdateDate(new \DateTime());
             
-            
-            $manager->persist($figure);
-            $manager->flush();
+
+        // 2- traiter les video reçus via le formulaire
+        $videos = $form->get('videos')->getData();
+            //récupérer les URLs reçus sous forme de tableau
+        $videoListUrl = $this->extractVideoUrlFromEmbedBalise($videos);
+
+        if(!empty($videoListUrl)){
+            foreach($videoListUrl as $videoUrl) {
+                $video = new Media();
+                $video->setType(Media::VIDEO_TYPE);
+                $video->setUrl($videoUrl);
+                $video->setIsPrincipal(false);
+                //lier la video à la figure
+                $figure->addMediaList($video);
+            }
+        }
+
+        $figure->setCreationDate(new \DateTime());
+        $figure->setLastUpdateDate(new \DateTime());
+
+        //Enregistrer le figure dans la BDD
+        $manager->persist($figure);
+        $manager->flush();
+
             return $this->redirectToRoute("home");
         }
 
