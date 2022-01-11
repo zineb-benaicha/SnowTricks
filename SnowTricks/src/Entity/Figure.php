@@ -143,6 +143,52 @@ class Figure
         return $this;
     }
 
+    public function getImagesList()
+    {
+        $mediaList = $this->getMediaList();
+
+        foreach ($mediaList as $mediaItem)
+        {
+            if($mediaItem->getType() == Media::IMAGE_TYPE) {
+                $imagesList[] = $mediaItem;
+            }
+        }
+        return $imagesList;
+    }
+
+    public function getPrincipalImage()
+    {
+        $imagesList = $this->getImagesList();
+
+        foreach ($imagesList as $image)
+        {
+            if($image->getIsPrincipal() == true) {
+                return $image;
+            }
+        }
+    }
+
+    public function setPrincipalImage(Media $image)
+    {
+        $oldPincipalImage = $this->getPrincipalImage();
+        $this->addMediaList($image);
+        $this->removeMediaList($oldPincipalImage);
+    }
+
+    public function getVideosList()
+    {
+        $mediaList = $this->getMediaList();
+
+        foreach ($mediaList as $mediaItem)
+        {
+            if($mediaItem->getType() == Media::VIDEO_TYPE) {
+                $imagesList[] = $mediaItem;
+            }
+        }
+        return $imagesList;
+    }
+
+
     /**
      * @return Collection|Message[]
      */
@@ -184,4 +230,6 @@ class Figure
 
         return $this;
     }
+
+   
 }

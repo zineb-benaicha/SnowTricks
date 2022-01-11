@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Validator\Constraints\File;
 
 
 class SnowtricksController extends AbstractController
@@ -42,15 +43,19 @@ class SnowtricksController extends AbstractController
                         $balise_array = str_split($balise);
                         //cherche la position du parametre src
                         $position_src_debut = strpos($balise, 'src="') + 5;
-                        //chercher la fin du parametre src
-                        $i = $position_src_debut;
-                        while($balise_array[$i] !== '"'){
-                            $i++;
+
+                        //si le mot clé src a été trouvé
+                        if($position_src_debut > 5) {
+                            //chercher la fin du parametre src
+                            $i = $position_src_debut;
+                            while($balise_array[$i] !== '"'){
+                                $i++;
+                            }
+                            $position_src_fin = $i;
+                            $lenght = $position_src_fin - $position_src_debut;
+                            $srcBalisesList[] = substr($balise, $position_src_debut, $lenght);
                         }
-                        $position_src_fin = $i;
-                        $lenght = $position_src_fin - $position_src_debut;
-                        $srcBalisesList[] = substr($balise, $position_src_debut, $lenght);
-                        }
+                    }
                 }
                 return $srcBalisesList;
                 
@@ -176,6 +181,121 @@ class SnowtricksController extends AbstractController
         }
 
         return $this->render('snowtricks/create_figure.html.twig', [
+            'formFigure' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("figure/{id}/edit", name="figure_edit")
+     */
+    public function updateFigure(Figure $figure,Request $request, ManagerRegistry $doctrine)
+    {
+        
+        $manager = $doctrine->getManager();
+
+        $form = $this->createFormBuilder($figure)
+                     ->add('name')
+                     ->add('description')
+                     ->add('groupe', EntityType::class, [
+                            'class' => Group::class,
+                            'choice_label' => 'name',
+                     
+                     ])
+                     ->add('images', FileType::class, [
+                            'multiple' => true,
+                            'mapped' => false,
+                            'required' => false
+                     ])
+                     ->add('videos', TextareaType::class,[
+                         'mapped' => false,
+                         'required' => false,
+                         'attr' => [
+                             'placeholder' => 'insérez les balises embed ici, et séparer les avec des virgules'
+                         ]
+                     ])
+                     ->add('principal_image', FileType::class, [
+                        'multiple' => false,
+                        'mapped' => false,
+                        'required' => false
+                 ])                  
+                     ->getForm();
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            
+        // 1- traiter les images reçus via le formulaire
+            $images = $form->get('images')->getData();
+
+            foreach($images as $key => $image) {
+                //générer un nom de fichier aléatoire pour chaque image
+                $file = md5(uniqid()) . '.' . $image->guessExtension();
+                //var_dump($image->guessExtension());
+
+                //copier le fichier dans le dossier uploads
+                $image->move(
+                    $this->getParameter('images_directory'),
+                    $file
+                );
+
+                //enregistrer l'image au niveau de la BDD
+                $img = new Media();
+                $img->setUrl($file);
+                $img->setType(Media::IMAGE_TYPE);
+                if($key == 0) {
+                    $img->setIsPrincipal(true);
+                }
+                else {
+                    $img->setIsPrincipal(false);
+                }
+                //lier l'image à la figure
+                $figure->addMediaList($img);
+            }
+
+        //-2 traiter l'image principale reçue
+            if ($form->get('principal_image')->getData()) {
+            $principalImageReceived = $form->get('principal_image')->getData();
+            //générer un nom de fichier aléatoire pour l'image principale
+            $file = md5(uniqid()) . '.' . $principalImageReceived->guessExtension();
+            //copier le fichier dans le dossier uploads
+            $principalImageReceived->move(
+                $this->getParameter('images_directory'),
+                $file
+            );
+
+            $principalImage = $figure->getPrincipalImage();
+            
+            $principalImage->setUrl($file);
+            
+            $figure->setPrincipalImage($principalImage);
+        }
+        // 2- traiter les video reçus via le formulaire
+            $videos = $form->get('videos')->getData();
+            //récupérer les URLs reçus sous forme de tableau
+            $videoListUrl = $this->extractVideoUrlFromEmbedBalise($videos);
+
+            if(!empty($videoListUrl)){
+                foreach($videoListUrl as $videoUrl) {
+                    $video = new Media();
+                    $video->setType(Media::VIDEO_TYPE);
+                    $video->setUrl($videoUrl);
+                    $video->setIsPrincipal(false);
+                    //lier la video à la figure
+                    $figure->addMediaList($video);
+                }
+            }
+
+        //3- mettre ajour la date de mise à jour
+        $figure->setLastUpdateDate(new \DateTime());
+
+        //4-Enregistrer le figure dans la BDD
+        $manager->persist($figure);
+        $manager->flush();
+
+            return $this->redirectToRoute("home");
+        }
+
+        return $this->render('snowtricks/edit_figure.html.twig', [
             'formFigure' => $form->createView()
         ]);
     }
