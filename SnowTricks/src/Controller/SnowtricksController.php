@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Validator\Constraints\File;
 
 
@@ -129,8 +130,6 @@ class SnowtricksController extends AbstractController
             $images = $form->get('images')->getData();
             
             if ($images) {
-
-            
                 foreach($images as $key => $image) {
                     //générer un nom de fichier aléatoire pour chaque image
                     $file = md5(uniqid()) . '.' . $image->guessExtension();
@@ -235,83 +234,154 @@ class SnowtricksController extends AbstractController
 
         $form->handleRequest($request);
 
+        //I- Si le formulaire a été soumis traiter les informations issues du formulaire
+            if($form->isSubmitted() && $form->isValid()) {
+                
+            // 1- traiter les images reçus via le formulaire
+                $images = $form->get('images')->getData();
+
+                foreach($images as $key => $image) {
+                    //générer un nom de fichier aléatoire pour chaque image
+                    $file = md5(uniqid()) . '.' . $image->guessExtension();
+                    //var_dump($image->guessExtension());
+
+                    //copier le fichier dans le dossier uploads
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $file
+                    );
+
+                    //enregistrer l'image au niveau de la BDD
+                    $img = new Media();
+                    $img->setUrl($file);
+                    $img->setType(Media::IMAGE_TYPE);
+                    if($key == 0) {
+                        $img->setIsPrincipal(true);
+                    }
+                    else {
+                        $img->setIsPrincipal(false);
+                    }
+                    //lier l'image à la figure
+                    $figure->addMediaList($img);
+                }
+
+            // 2- traiter l'image principale reçue
+                if ($form->get('principal_image')->getData()) {
+
+                    $principalImageReceived = $form->get('principal_image')->getData();
+                    //générer un nom de fichier aléatoire pour l'image principale
+                    $file = md5(uniqid()) . '.' . $principalImageReceived->guessExtension();
+                    //copier le fichier dans le dossier uploads
+                    $principalImageReceived->move(
+                        $this->getParameter('images_directory'),
+                        $file
+                    );
+
+                    $principalImage = $figure->getPrincipalImage();
+                    
+                    $principalImage->setUrl($file);
+                    
+                    $figure->setPrincipalImage($principalImage);
+                }
+            // 3- traiter les video reçus via le formulaire
+                $videos = $form->get('videos')->getData();
+                //récupérer les URLs reçus sous forme de tableau
+                $videoListUrl = $this->extractVideoUrlFromEmbedBalise($videos);
+
+                if(!empty($videoListUrl)){
+                    foreach($videoListUrl as $videoUrl) {
+                        $video = new Media();
+                        $video->setType(Media::VIDEO_TYPE);
+                        $video->setUrl($videoUrl);
+                        $video->setIsPrincipal(false);
+                        //lier la video à la figure
+                        $figure->addMediaList($video);
+                    }
+                }
+            
+
+            // 4- mettre a jour la date de mise à jour
+                $figure->setLastUpdateDate(new \DateTime());
+
+            // 5-Enregistrer le figure dans la BDD
+                $manager->persist($figure);
+                $manager->flush();
+
+                return $this->redirectToRoute("home");
+            }
+        //II- Si le formulaire n'a pas été soumis, envoyer la liste des images et vidéos de la figure
+       
+        return $this->render('snowtricks/edit_figure.html.twig', [
+            'formFigure' => $form->createView(),
+            'imagesList' => $figure->getImagesList(),
+            'videosList' => $figure->getVideosList()
+        ]);
+    }
+
+    /**
+     * @Route("/image/{id}/edit", name="image_edit")
+     */
+    public function updateImage(Media $media, ManagerRegistry $doctrine, Request $request)
+    {
+        $form = $this->createFormBuilder($media)
+                     ->add('image', FileType::class, [
+                            'multiple' => false,
+                            'mapped' => false,
+                            'required' => false
+                     ])
+                   
+                     ->getForm();
+
+        $form->handleRequest($request);
+        
+       
         if($form->isSubmitted() && $form->isValid()) {
             
-        // 1- traiter les images reçus via le formulaire
-            $images = $form->get('images')->getData();
 
-            foreach($images as $key => $image) {
-                //générer un nom de fichier aléatoire pour chaque image
-                $file = md5(uniqid()) . '.' . $image->guessExtension();
-                //var_dump($image->guessExtension());
-
-                //copier le fichier dans le dossier uploads
-                $image->move(
-                    $this->getParameter('images_directory'),
-                    $file
-                );
-
-                //enregistrer l'image au niveau de la BDD
-                $img = new Media();
-                $img->setUrl($file);
-                $img->setType(Media::IMAGE_TYPE);
-                if($key == 0) {
-                    $img->setIsPrincipal(true);
-                }
-                else {
-                    $img->setIsPrincipal(false);
-                }
-                //lier l'image à la figure
-                $figure->addMediaList($img);
-            }
-
-        //-2 traiter l'image principale reçue
-            if ($form->get('principal_image')->getData()) {
-
-                $principalImageReceived = $form->get('principal_image')->getData();
-                //générer un nom de fichier aléatoire pour l'image principale
-                $file = md5(uniqid()) . '.' . $principalImageReceived->guessExtension();
-                //copier le fichier dans le dossier uploads
-                $principalImageReceived->move(
-                    $this->getParameter('images_directory'),
-                    $file
-                );
-
-                $principalImage = $figure->getPrincipalImage();
-                
-                $principalImage->setUrl($file);
-                
-                $figure->setPrincipalImage($principalImage);
-            }
-        // 2- traiter les video reçus via le formulaire
-            $videos = $form->get('videos')->getData();
-            //récupérer les URLs reçus sous forme de tableau
-            $videoListUrl = $this->extractVideoUrlFromEmbedBalise($videos);
-
-            if(!empty($videoListUrl)){
-                foreach($videoListUrl as $videoUrl) {
-                    $video = new Media();
-                    $video->setType(Media::VIDEO_TYPE);
-                    $video->setUrl($videoUrl);
-                    $video->setIsPrincipal(false);
-                    //lier la video à la figure
-                    $figure->addMediaList($video);
-                }
-            }
-
-        //3- mettre ajour la date de mise à jour
-        $figure->setLastUpdateDate(new \DateTime());
-
-        //4-Enregistrer le figure dans la BDD
-        $manager->persist($figure);
-        $manager->flush();
-
-            return $this->redirectToRoute("home");
         }
+        
+    }
+    /**
+     * @Route("/video/{id}/edit", name="video_edit")
+     */
+    public function updateVideo(Media $media, ManagerRegistry $doctrine, Request $request)
+    {
+        $manager = $doctrine->getManager();
+        $form = $this->createFormBuilder($media)
+                     ->add('url', TextType::class, [
+                            'mapped' => true,
+                            'required' => false
+                     ])
+                   
+                     ->getForm();
 
-        return $this->render('snowtricks/edit_figure.html.twig', [
-            'formFigure' => $form->createView()
+        $form->handleRequest($request);
+       
+        if($form->isSubmitted() && $form->isValid()) {
+            $url = $form->get('url')->getData();
+            $media->setUrl($url);
+            $manager->persist($media);
+            $manager->flush();
+            return $this->redirectToRoute("figure_edit", ['id' => $media->getFigure()->getId()]);
+        }
+        return $this->redirectToRoute("figure_edit", [
+           'id' => $media->getFigure()->getId()
+           //'formMedia' => $form->createView()
         ]);
+    
+        
+    }
+    /**
+     * @Route("/media/{id}/delete", name="media_delete")
+     */
+    public function deleteMedia(Media $media, ManagerRegistry $doctrine): RedirectResponse
+    {
+        $manager = $doctrine->getManager();
+        $manager->remove($media);
+        $manager->flush();
+        return $this->redirectToRoute("figure_edit", ['id' => $media->getFigure()->getId()]);
+
+        
     }
 
     /**
@@ -319,8 +389,12 @@ class SnowtricksController extends AbstractController
      */
     public function showFigure(Figure $figure)
     {
+
         return $this->render('snowtricks/show_figure.html.twig',[
-            'figure' => $figure
+            'figure' => $figure,
+            'imagePrincipale' => $figure->getPrincipalImage()->getUrl(),
+            'imageList' => $figure->getImagesList(),
+            'videoList' => $figure->getVideosList()
         ]);
     }
 

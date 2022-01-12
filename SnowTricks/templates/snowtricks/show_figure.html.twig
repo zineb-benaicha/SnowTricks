@@ -1,2 +1,21 @@
-Bonjour, <br>
-ici je vais détailler la figure {{ figure.name }} 
+
+<p>Nom figure: {{ figure.name }} </p>
+<p>Description: {{figure.description }} </p>
+<p>Groupe: {{ figure.groupe.name}}</p>
+<img src="{{ asset('uploads/'~ imagePrincipale) }}" alt="Symfony!" width=500 height=500/>
+
+{% for image in imageList %}
+
+    <img src="{{ asset('uploads/'~ image.url) }}" alt="Symfony!" width=100 height=100/>
+   
+
+{% endfor %}
+
+{% for video in videoList %}
+   <iframe width="100" height="100" src={{ video.url }}></iframe>
+   
+{% endfor %}
+<p>
+<a href="{{ path('figure_edit', {'id': figure.id}) }}">Modifier la figure</a>/ 
+<a href="{{ path('figure_delete', {'id': figure.id}) }}" onclick="return confirm('Voulez-vous vraiment supprimer la figure?')">Supprimer la figure</a> <br>
+</p>

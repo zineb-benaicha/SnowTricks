@@ -1,9 +1,35 @@
 {% extends 'base.html.twig' %}
 {% form_theme formFigure 'bootstrap_5_horizontal_layout.html.twig' %}
+
 {% block body %}
+
 <h1>Modifier la figure</h1>
+
 {{ form_start(formFigure) }}
+
 {{ form_widget(formFigure) }}
-<button type="submit" class="btn btn-success">Valider les modifications</button>
+<button type="submit" class="btn btn-success">Valider les modifications</button> <br> <br>
+{{ form_end(formFigure) }}
+
+{% for image in imagesList %}
+
+   <img src="{{ asset('uploads/'~ image.url) }}" alt="Symfony!" width=100 height=100/>
+   <a href="{{ path('image_edit', {'id': image.id}) }}">Modifier</a> /
+   <a href="{{ path('media_delete', {'id': image.id}) }}">Supprimer</a> <br>
+
+{% endfor %}
+
+{% for video in videosList %}
+   <iframe width="100" height="100" src={{ video.url }}></iframe>
+   <a href="{{ path('video_edit', {'id': video.id}) }}">Modifier</a> /
+   <a href="{{ path('media_delete', {'id': video.id}) }}">Supprimer</a> <br>
+{% endfor %}
+
+<br> <br>
+
+
+
+
+
 
 {% endblock %}

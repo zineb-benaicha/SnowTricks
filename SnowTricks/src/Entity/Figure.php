@@ -178,14 +178,15 @@ class Figure
     public function getVideosList()
     {
         $mediaList = $this->getMediaList();
+        $videosList = [];
 
         foreach ($mediaList as $mediaItem)
         {
             if($mediaItem->getType() == Media::VIDEO_TYPE) {
-                $imagesList[] = $mediaItem;
+                $videosList[] = $mediaItem;
             }
         }
-        return $imagesList;
+        return $videosList;
     }
 
 
