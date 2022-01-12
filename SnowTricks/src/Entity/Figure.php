@@ -162,7 +162,7 @@ class Figure
 
         foreach ($imagesList as $image)
         {
-            if($image->getIsPrincipal() == true) {
+            if($image->getIsPrincipal() === true) {
                 return $image;
             }
         }
@@ -171,8 +171,8 @@ class Figure
     public function setPrincipalImage(Media $image)
     {
         $oldPincipalImage = $this->getPrincipalImage();
-        $this->addMediaList($image);
         $this->removeMediaList($oldPincipalImage);
+        $this->addMediaList($image);
     }
 
     public function getVideosList()

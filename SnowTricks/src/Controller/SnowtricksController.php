@@ -121,38 +121,51 @@ class SnowtricksController extends AbstractController
                      ->getForm();
 
         $form->handleRequest($request);
-
+        
+       
         if($form->isSubmitted() && $form->isValid()) {
             
         // 1- traiter les images reçus via le formulaire
             $images = $form->get('images')->getData();
-
-            foreach($images as $key => $image) {
-                //générer un nom de fichier aléatoire pour chaque image
-                $file = md5(uniqid()) . '.' . $image->guessExtension();
-                //var_dump($image->guessExtension());
-
-                //copier le fichier dans le dossier uploads
-                $image->move(
-                    $this->getParameter('images_directory'),
-                    $file
-                );
-
-                //enregistrer l'image au niveau de la BDD
-                $img = new Media();
-                $img->setUrl($file);
-                $img->setType(Media::IMAGE_TYPE);
-                if($key == 0) {
-                    $img->setIsPrincipal(true);
-                }
-                else {
-                    $img->setIsPrincipal(false);
-                }
-                //lier l'image à la figure
-                $figure->addMediaList($img);
-            }
+            
+            if ($images) {
 
             
+                foreach($images as $key => $image) {
+                    //générer un nom de fichier aléatoire pour chaque image
+                    $file = md5(uniqid()) . '.' . $image->guessExtension();
+                    //var_dump($image->guessExtension());
+
+                    //copier le fichier dans le dossier uploads
+                    $image->move(
+                        $this->getParameter('images_directory'),
+                        $file
+                    );
+
+                    //enregistrer l'image au niveau de la BDD
+                    $img = new Media();
+                    $img->setUrl($file);
+                    $img->setType(Media::IMAGE_TYPE);
+                    if($key == 0) {
+                        $img->setIsPrincipal(true);
+                    }
+                    else {
+                        $img->setIsPrincipal(false);
+                    }
+                    //lier l'image à la figure
+                    $figure->addMediaList($img);
+                }
+            }
+            //l'utilisateur n'a choisi aucune image mettre une image par defaut
+            else {
+                //enregistrer l'image au niveau de la BDD
+                $img = new Media();
+                $img->setUrl('snowboard.jpg');
+                $img->setType(Media::IMAGE_TYPE);
+                $img->setIsPrincipal(true);
+                //lier l'image à la figure
+                $figure->addMediaList($img);
+            } 
 
         // 2- traiter les video reçus via le formulaire
         $videos = $form->get('videos')->getData();
@@ -254,21 +267,22 @@ class SnowtricksController extends AbstractController
 
         //-2 traiter l'image principale reçue
             if ($form->get('principal_image')->getData()) {
-            $principalImageReceived = $form->get('principal_image')->getData();
-            //générer un nom de fichier aléatoire pour l'image principale
-            $file = md5(uniqid()) . '.' . $principalImageReceived->guessExtension();
-            //copier le fichier dans le dossier uploads
-            $principalImageReceived->move(
-                $this->getParameter('images_directory'),
-                $file
-            );
 
-            $principalImage = $figure->getPrincipalImage();
-            
-            $principalImage->setUrl($file);
-            
-            $figure->setPrincipalImage($principalImage);
-        }
+                $principalImageReceived = $form->get('principal_image')->getData();
+                //générer un nom de fichier aléatoire pour l'image principale
+                $file = md5(uniqid()) . '.' . $principalImageReceived->guessExtension();
+                //copier le fichier dans le dossier uploads
+                $principalImageReceived->move(
+                    $this->getParameter('images_directory'),
+                    $file
+                );
+
+                $principalImage = $figure->getPrincipalImage();
+                
+                $principalImage->setUrl($file);
+                
+                $figure->setPrincipalImage($principalImage);
+            }
         // 2- traiter les video reçus via le formulaire
             $videos = $form->get('videos')->getData();
             //récupérer les URLs reçus sous forme de tableau
