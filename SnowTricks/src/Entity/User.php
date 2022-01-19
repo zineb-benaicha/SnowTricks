@@ -7,13 +7,20 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity(
+ *  fields={"email"},
+ *  message="Cet adresse e-mail est déjà enregistrée"
+ * )
  */
-class User implements PasswordAuthenticatedUserInterface
+class User implements PasswordAuthenticatedUserInterface,UserInterface 
 {
     /**
      * @ORM\Id
@@ -29,13 +36,20 @@ class User implements PasswordAuthenticatedUserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Email(message="Le format de votre adresse e-mail est incorrect")
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=500)
+     * @Assert\Length(min="8", minMessage="Le mot de passe doit contenir au moins 8 caractères")
      */
     private $password;
+
+    /**
+     * @Assert\EqualTo(propertyPath="password", message="Le mot de passe et sa confirmation doivent être identiques")
+     */
+    public $confirm_password;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -133,5 +147,21 @@ class User implements PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function getRoles()
+    {
+        return ['USER_ROLE'];
+    }
+
+    public function getSalt()
+    {}
+
+    public function eraseCredentials()
+    {}
+    
+    public function getUserIdentifier()
+    {
+        return $this->username;
     }
 }

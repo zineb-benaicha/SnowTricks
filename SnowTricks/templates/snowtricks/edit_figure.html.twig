@@ -21,7 +21,11 @@
 
 {% for video in videosList %}
    <iframe width="100" height="100" src={{ video.url }}></iframe>
-   <a href="{{ path('video_edit', {'id': video.id}) }}">Modifier</a> /
+   
+   <a href="{{ path('video_edit', {'id': video.id}) }}">Modifier</a>  
+   {{ if editVideo = 1 }}
+   
+   /
    <a href="{{ path('media_delete', {'id': video.id}) }}">Supprimer</a> <br>
 {% endfor %}
 

@@ -347,6 +347,7 @@ class SnowtricksController extends AbstractController
     public function updateVideo(Media $media, ManagerRegistry $doctrine, Request $request)
     {
         $manager = $doctrine->getManager();
+
         $form = $this->createFormBuilder($media)
                      ->add('url', TextType::class, [
                             'mapped' => true,
@@ -365,8 +366,8 @@ class SnowtricksController extends AbstractController
             return $this->redirectToRoute("figure_edit", ['id' => $media->getFigure()->getId()]);
         }
         return $this->redirectToRoute("figure_edit", [
-           'id' => $media->getFigure()->getId()
-           //'formMedia' => $form->createView()
+           'id' => $media->getFigure()->getId(),
+           'editVideo' => 1
         ]);
     
         
