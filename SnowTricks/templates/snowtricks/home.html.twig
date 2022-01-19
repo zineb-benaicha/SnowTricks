@@ -1,0 +1,8 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+{% for figure in figuresList %}
+<a href="{{ path('figure_show', {'id': figure.id}) }}">{{ figure.name }} </a> : 
+<a href="{{ path('figure_edit', {'id': figure.id}) }}">Modifier la figure</a>/ <a href="{{ path('figure_delete', {'id': figure.id}) }}" onclick="return confirm('Voulez-vous vraiment supprimer la figure?')">Supprimer la figure</a> <br>
+{% endfor %}
+<a href="{{ path('figure_create') }}">Créer une nouvelle Figure</a>
+{% endblock %}
