@@ -395,7 +395,8 @@ class SnowtricksController extends AbstractController
             'figure' => $figure,
             'imagePrincipale' => $figure->getPrincipalImage()->getUrl(),
             'imageList' => $figure->getImagesList(),
-            'videoList' => $figure->getVideosList()
+            'videoList' => $figure->getVideosList(),
+            'messages' => $figure->getMessagesList()
         ]);
     }
 
