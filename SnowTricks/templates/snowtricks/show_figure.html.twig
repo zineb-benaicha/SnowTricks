@@ -1,21 +1,41 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<article>
+    <h1>Nom figure: {{ figure.name }} </h1>
+    <h3>Description: {{figure.description }} </h3>
+    <h5>Groupe: {{ figure.groupe.name}}</h5>
 
-<p>Nom figure: {{ figure.name }} </p>
-<p>Description: {{figure.description }} </p>
-<p>Groupe: {{ figure.groupe.name}}</p>
-<img src="{{ asset('uploads/'~ imagePrincipale) }}" alt="Symfony!" width=500 height=500/>
+    <img src="{{ asset('uploads/'~ imagePrincipale) }}" alt="Symfony!" width=500 height=500/>
 
-{% for image in imageList %}
+    {% for image in imageList %}
 
-    <img src="{{ asset('uploads/'~ image.url) }}" alt="Symfony!" width=100 height=100/>
-   
+        <img src="{{ asset('uploads/'~ image.url) }}" alt="Symfony!" width=100 height=100/>
+    
 
-{% endfor %}
+    {% endfor %}
 
-{% for video in videoList %}
-   <iframe width="100" height="100" src={{ video.url }}></iframe>
-   
-{% endfor %}
-<p>
-<a href="{{ path('figure_edit', {'id': figure.id}) }}">Modifier la figure</a>/ 
-<a href="{{ path('figure_delete', {'id': figure.id}) }}" onclick="return confirm('Voulez-vous vraiment supprimer la figure?')">Supprimer la figure</a> <br>
-</p>
+    {% for video in videoList %}
+    <iframe width="100" height="100" src={{ video.url }}></iframe>
+    
+    {% endfor %}
+    <p>
+    <a href="{{ path('figure_edit', {'id': figure.id}) }}">Modifier la figure</a>/ 
+    <a href="{{ path('figure_delete', {'id': figure.id}) }}" onclick="return confirm('Voulez-vous vraiment supprimer la figure?')">Supprimer la figure</a> <br>
+    </p>
+</article>
+<h2>Les messages</h2>
+<section id="commentaire">
+    {% for message in messages %}
+        <div id="comment">
+            <div class="row">
+                <div class="col-3 fw-bold">
+                    {{ message.user.username }} (<small> {{message.creationDate | date('d/m/Y à H:i')}} </small> ):
+                </div>
+                <div class="col">
+                {{ message.content }}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</section>    
+{% endblock %}

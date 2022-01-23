@@ -25,7 +25,7 @@ class MediaFixtures extends Fixture implements DependentFixtureInterface
             $image = new Media();
 
             $image->setType(Media::IMAGE_TYPE)
-              ->setUrl('../../public/image/snowboard.jpg')
+              ->setUrl('snowboard.jpg')
               ->setIsPrincipal(true)
               ->setFigure($this->getReference('figure_' . $i))
               ->setIsPrincipal(true);
